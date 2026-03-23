@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockSmart — Inventory Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4ef;
+    --surface: #ffffff;
+    --surface2: #eeecea;
+    --accent: #1a1a2e;
+    --accent2: #e85d26;
+    --accent3: #2d9e6b;
+    --text: #1a1a2e;
+    --muted: #8a8880;
+    --border: #e0ded8;
+    --yellow: #f5c842;
+    --red: #e84040;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* TOP NAV */
+  .topnav {
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    height: 60px;
+    gap: 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+  }
+
+  .nav-logo-badge {
+    background: var(--accent2);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .nav-link {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-link:hover { color: white; background: rgba(255,255,255,0.08); }
+  .nav-link.active { color: white; background: rgba(255,255,255,0.12); }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+  }
+
+  .nav-search {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 7px 14px;
+    color: white;
+    font-size: 13px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    width: 200px;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .nav-search::placeholder { color: rgba(255,255,255,0.4); }
+  .nav-search:focus { background: rgba(255,255,255,0.15); width: 240px; border-color: rgba(255,255,255,0.3); }
+
+  .nav-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--yellow));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .sidebar-section {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 16px 12px 6px;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-item.active { background: var(--accent); color: white; }
+  .sidebar-item .si-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .sidebar-badge {
+    margin-left: auto;
+    background: var(--accent2);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* MAIN */
+  .main {
+    padding: 32px 40px;
+    overflow-y: auto;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .breadcrumb span { color: var(--accent2); font-weight: 600; }
+
+  .header-actions { display: flex; gap: 10px; }
+
+  .btn {
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.15s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-outline {
+    background: white;
+    color: var(--text);
+    border: 1.5px solid var(--border);
+  }
+
+  .btn-outline:hover { border-color: var(--accent); }
+
+  .btn-primary {
+    background: var(--accent2);
+    color: white;
+    box-shadow: 0 4px 12px rgba(232,93,38,0.3);
+  }
+
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(232,93,38,0.4); }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1.5px solid var(--border);
+    transition: all 0.2s;
+    animation: slideUp 0.5s ease backwards;
+  }
+
+  .stat-card:nth-child(1) { animation-delay: 0.05s; }
+  .stat-card:nth-child(2) { animation-delay: 0.1s; }
+  .stat-card:nth-child(3) { animation-delay: 0.15s; }
+  .stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+  .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+
+  .stat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+  .stat-icon-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+  }
+
+  .stat-change {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 5px;
+  }
+
+  .change-green { background: #d4f4e6; color: var(--accent3); }
+  .change-red { background: #fde8e8; color: var(--red); }
+  .change-yellow { background: #fef8e0; color: #c49a00; }
+
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+  /* TABLE SECTION */
+  .table-section {
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    animation: slideUp 0.5s ease 0.25s backwards;
+  }
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-title { font-size: 16px; font-weight: 700; }
+  .table-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .table-filters { display: flex; gap: 8px; }
+
+  .filter-select {
+    padding: 7px 12px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    font-size: 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    cursor: pointer;
+    outline: none;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: var(--bg);
+  }
+
+  th {
+    padding: 12px 24px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 14px 24px;
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tr:hover td { background: var(--bg); }
+
+  .product-cell { display: flex; align-items: center; gap: 12px; }
+
+  .product-thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .product-name { font-weight: 600; font-size: 13px; }
+  .product-sku { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); }
+
+  .stock-bar-wrap { display: flex; align-items: center; gap: 10px; }
+
+  .stock-bar {
+    width: 80px;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .stock-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  .stock-num { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .status-pill::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+  }
+
+  .status-in { background: #d4f4e6; color: var(--accent3); }
+  .status-in::before { background: var(--accent3); }
+  .status-low { background: #fef8e0; color: #c49a00; }
+  .status-low::before { background: #f5c842; }
+  .status-out { background: #fde8e8; color: var(--red); }
+  .status-out::before { background: var(--red); }
+
+  .price-cell {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .action-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .action-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* BOTTOM GRID */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    margin-top: 20px;
+    animation: slideUp 0.5s ease 0.35s backwards;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    padding: 24px;
+  }
+
+  .card-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
+
+  /* Simple bar chart */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 140px;
+  }
+
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .bar {
+    width: 100%;
+    border-radius: 6px 6px 0 0;
+    transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .bar:hover { opacity: 0.8; }
+
+  .bar-label { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .bar-val { font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; color: var(--accent); }
+
+  /* Low stock alerts */
+  .alert-card {
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    padding: 24px;
+  }
+
+  .alert-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .alert-item:last-child { border-bottom: none; }
+
+  .alert-emoji {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .alert-info { flex: 1; }
+  .alert-name { font-size: 13px; font-weight: 600; }
+  .alert-stock { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .alert-action {
+    padding: 5px 10px;
+    background: var(--accent2);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    white-space: nowrap;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-logo">
+    <div class="nav-logo-badge">📦</div>
+    StockSmart
+  </div>
+  <div class="nav-links">
+    <div class="nav-link active">Dashboard</div>
+    <div class="nav-link">Inventory</div>
+    <div class="nav-link">Orders</div>
+    <div class="nav-link">Suppliers</div>
+    <div class="nav-link">Reports</div>
+  </div>
+  <div class="nav-right">
+    <input class="nav-search" type="text" placeholder="🔍  Search products...">
+    <div class="nav-avatar">JD</div>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Overview</div>
+    <div class="sidebar-item active"><span class="si-icon">📊</span> Dashboard</div>
+    <div class="sidebar-item"><span class="si-icon">📦</span> All Products</div>
+    <div class="sidebar-item"><span class="si-icon">➕</span> Add Product</div>
+
+    <div class="sidebar-section">Operations</div>
+    <div class="sidebar-item"><span class="si-icon">🛒</span> Purchase Orders</div>
+    <div class="sidebar-item"><span class="si-icon">📤</span> Sales Orders</div>
+    <div class="sidebar-item">
+      <span class="si-icon">⚠️</span> Low Stock
+      <span class="sidebar-badge">4</span>
+    </div>
+    <div class="sidebar-item"><span class="si-icon">🔄</span> Transfers</div>
+
+    <div class="sidebar-section">Analytics</div>
+    <div class="sidebar-item"><span class="si-icon">📈</span> Sales Report</div>
+    <div class="sidebar-item"><span class="si-icon">💰</span> Financials</div>
+    <div class="sidebar-item"><span class="si-icon">🏭</span> Suppliers</div>
+
+    <div class="sidebar-section">Settings</div>
+    <div class="sidebar-item"><span class="si-icon">⚙️</span> Configuration</div>
+    <div class="sidebar-item"><span class="si-icon">👥</span> Team</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1>Inventory Dashboard</h1>
+        <div class="breadcrumb">Home / <span>Inventory</span> / Dashboard</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline">📥 Import CSV</button>
+        <button class="btn btn-outline">📊 Export Report</button>
+        <button class="btn btn-primary">+ Add Product</button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon-box" style="background:#eef2ff">📦</div>
+          <span class="stat-change change-green">↑ 4.2%</span>
+        </div>
+        <div class="stat-num">1,284</div>
+        <div class="stat-label">Total Products</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon-box" style="background:#fef8e0">⚠️</div>
+          <span class="stat-change change-yellow">4 alerts</span>
+        </div>
+        <div class="stat-num">4</div>
+        <div class="stat-label">Low Stock Items</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon-box" style="background:#d4f4e6">💰</div>
+          <span class="stat-change change-green">↑ 12%</span>
+        </div>
+        <div class="stat-num">$94.2k</div>
+        <div class="stat-label">Inventory Value</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon-box" style="background:#fde8e8">📤</div>
+          <span class="stat-change change-red">↓ 2.1%</span>
+        </div>
+        <div class="stat-num">38</div>
+        <div class="stat-label">Pending Orders</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-section">
+      <div class="table-header">
+        <div>
+          <div class="table-title">Product Inventory</div>
+          <div class="table-subtitle">1,284 products · Last updated 5 min ago</div>
+        </div>
+        <div class="table-filters">
+          <select class="filter-select">
+            <option>All Categories</option>
+            <option>Electronics</option>
+            <option>Clothing</option>
+            <option>Food</option>
+          </select>
+          <select class="filter-select">
+            <option>All Status</option>
+            <option>In Stock</option>
+            <option>Low Stock</option>
+            <option>Out of Stock</option>
+          </select>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Stock Level</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Last Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="product-cell">
+                <div class="product-thumb" style="background:#eef2ff">💻</div>
+                <div>
+                  <div class="product-name">MacBook Pro 14"</div>
+                  <div class="product-sku">SKU-001-MPB</div>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--muted);font-size:13px">Electronics</td>
+            <td>
+              <div class="stock-bar-wrap">
+                <div class="stock-bar"><div class="stock-fill" style="width:72%;background:var(--accent3)"></div></div>
+                <span class="stock-num">72</span>
+              </div>
+            </td>
+            <td><span class="price-cell">$2,399</span></td>
+            <td><span class="status-pill status-in">In Stock</span></td>
+            <td style="color:var(--muted);font-size:12px">2h ago</td>
+            <td><button class="action-btn">Edit</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="product-cell">
+                <div class="product-thumb" style="background:#fef8e0">⌚</div>
+                <div>
+                  <div class="product-name">Apple Watch Series 9</div>
+                  <div class="product-sku">SKU-002-AWS</div>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--muted);font-size:13px">Electronics</td>
+            <td>
+              <div class="stock-bar-wrap">
+                <div class="stock-bar"><div class="stock-fill" style="width:15%;background:var(--yellow)"></div></div>
+                <span class="stock-num" style="color:#c49a00">8</span>
+              </div>
+            </td>
+            <td><span class="price-cell">$399</span></td>
+            <td><span class="status-pill status-low">Low Stock</span></td>
+            <td style="color:var(--muted);font-size:12px">1h ago</td>
+            <td><button class="action-btn">Reorder</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="product-cell">
+                <div class="product-thumb" style="background:#d4f4e6">👟</div>
+                <div>
+                  <div class="product-name">Nike Air Max 270</div>
+                  <div class="product-sku">SKU-003-NAM</div>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--muted);font-size:13px">Clothing</td>
+            <td>
+              <div class="stock-bar-wrap">
+                <div class="stock-bar"><div class="stock-fill" style="width:88%;background:var(--accent3)"></div></div>
+                <span class="stock-num">243</span>
+              </div>
+            </td>
+            <td><span class="price-cell">$150</span></td>
+            <td><span class="status-pill status-in">In Stock</span></td>
+            <td style="color:var(--muted);font-size:12px">3h ago</td>
+            <td><button class="action-btn">Edit</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="product-cell">
+                <div class="product-thumb" style="background:#fde8e8">📱</div>
+                <div>
+                  <div class="product-name">Samsung Galaxy S24</div>
+                  <div class="product-sku">SKU-004-SGS</div>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--muted);font-size:13px">Electronics</td>
+            <td>
+              <div class="stock-bar-wrap">
+                <div class="stock-bar"><div class="stock-fill" style="width:0%;background:var(--red)"></div></div>
+                <span class="stock-num" style="color:var(--red)">0</span>
+              </div>
+            </td>
+            <td><span class="price-cell">$799</span></td>
+            <td><span class="status-pill status-out">Out of Stock</span></td>
+            <td style="color:var(--muted);font-size:12px">5h ago</td>
+            <td><button class="action-btn">Reorder</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="product-cell">
+                <div class="product-thumb" style="background:#f0e6ff">🎮</div>
+                <div>
+                  <div class="product-name">PS5 Controller</div>
+                  <div class="product-sku">SKU-005-PS5</div>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--muted);font-size:13px">Electronics</td>
+            <td>
+              <div class="stock-bar-wrap">
+                <div class="stock-bar"><div class="stock-fill" style="width:45%;background:var(--accent3)"></div></div>
+                <span class="stock-num">56</span>
+              </div>
+            </td>
+            <td><span class="price-cell">$74</span></td>
+            <td><span class="status-pill status-in">In Stock</span></td>
+            <td style="color:var(--muted);font-size:12px">1d ago</td>
+            <td><button class="action-btn">Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BOTTOM GRID -->
+    <div class="bottom-grid">
+      <div class="chart-card">
+        <div class="card-title">📈 Monthly Sales by Category</div>
+        <div class="bar-chart" id="barChart"></div>
+      </div>
+
+      <div class="alert-card">
+        <div class="card-title">⚠️ Low Stock Alerts</div>
+        <div class="alert-item">
+          <div class="alert-emoji" style="background:#fef8e0">⌚</div>
+          <div class="alert-info">
+            <div class="alert-name">Apple Watch S9</div>
+            <div class="alert-stock">8 units left · Min: 20</div>
+          </div>
+          <button class="alert-action">Reorder</button>
+        </div>
+        <div class="alert-item">
+          <div class="alert-emoji" style="background:#fde8e8">📱</div>
+          <div class="alert-info">
+            <div class="alert-name">Samsung Galaxy S24</div>
+            <div class="alert-stock">0 units · Out of stock</div>
+          </div>
+          <button class="alert-action">Reorder</button>
+        </div>
+        <div class="alert-item">
+          <div class="alert-emoji" style="background:#fef8e0">🖱️</div>
+          <div class="alert-info">
+            <div class="alert-name">Logitech MX Master</div>
+            <div class="alert-stock">5 units left · Min: 15</div>
+          </div>
+          <button class="alert-action">Reorder</button>
+        </div>
+        <div class="alert-item">
+          <div class="alert-emoji" style="background:#fef8e0">🎧</div>
+          <div class="alert-info">
+            <div class="alert-name">Sony WH-1000XM5</div>
+            <div class="alert-stock">3 units left · Min: 10</div>
+          </div>
+          <button class="alert-action">Reorder</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Bar chart
+  const data = [
+    { label: 'Jan', val: 42, color: '#1a1a2e' },
+    { label: 'Feb', val: 58, color: '#1a1a2e' },
+    { label: 'Mar', val: 35, color: '#1a1a2e' },
+    { label: 'Apr', val: 72, color: '#e85d26' },
+    { label: 'May', val: 65, color: '#1a1a2e' },
+    { label: 'Jun', val: 88, color: '#1a1a2e' },
+    { label: 'Jul', val: 54, color: '#1a1a2e' },
+  ];
+
+  const chart = document.getElementById('barChart');
+  const max = Math.max(...data.map(d => d.val));
+
+  data.forEach((d, i) => {
+    const group = document.createElement('div');
+    group.className = 'bar-group';
+    group.innerHTML = `
+      <div class="bar-val">$${d.val}k</div>
+      <div class="bar" style="height:0%;background:${d.color};transition-delay:${i * 0.07}s" data-h="${(d.val/max*100)}"></div>
+      <div class="bar-label">${d.label}</div>
+    `;
+    chart.appendChild(group);
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.bar').forEach(bar => {
+      bar.style.height = bar.dataset.h + '%';
+    });
+  }, 300);
+
+  // Nav interactions
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function() {
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Animate stock bars on load
+  setTimeout(() => {
+    document.querySelectorAll('.stock-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      bar.style.transition = 'width 1s ease';
+      setTimeout(() => bar.style.width = w, 100);
+    });
+  }, 200);
+</script>
+</body>
+</html>
